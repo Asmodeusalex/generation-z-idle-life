@@ -1,0 +1,12 @@
+node_modules/
+.env
+.env.*
+*.keystore
+*.jks
+android/local.properties
+android/.gradle/
+android/**/build/
+*.tar.gz
+
+www/
+*.zip

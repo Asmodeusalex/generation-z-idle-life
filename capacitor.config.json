@@ -1,0 +1,13 @@
+{
+  "appId": "com.generationz.idlelife",
+  "appName": "Поколение Z",
+  "webDir": "www",
+  "server": {
+    "hostname": "localhost",
+    "androidScheme": "https"
+  },
+  "android": {
+    "backgroundColor": "#101a29",
+    "allowMixedContent": false
+  }
+}
