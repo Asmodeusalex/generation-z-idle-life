@@ -1,0 +1,11 @@
+import {FRAMES,TITLES,LEGACY_MINT} from '../data/profile.js';
+export const freshProfile=()=>({nickname:'',ownedFrames:['standard'],ownedTitles:['newbie'],frame:null,title:'newbie'});
+export const normalizeNickname=value=>typeof value==='string'?[...value.trim().replace(/[\u0000-\u001f\u007f-\u009f\u202a-\u202e\u2066-\u2069]/g,'')].slice(0,20).join(''):'';
+export function ruleMet(s,rule){switch(rule){case 'free':return true;case 'firstJob':return s.achievements.includes('firstJob');case 'home':return s.housing>=1;case 'work':return s.stats.work>=10;case 'jobs':return s.jobs.length>=5;case 'collection':return s.stats.bought>=10;case 'million':return s.stats.earned>=1e6;case 'starter':return s.commerce?.cosmetics.includes('mintFrame')||false;default:return false;}}
+export const catalog=(s,kind)=>kind==='frame'?(ruleMet(s,'starter')?[...FRAMES,LEGACY_MINT]:FRAMES):kind==='title'?TITLES:[];
+export function isOwned(s,kind,item){return !!item&&(item.rule?ruleMet(s,item.rule):s.profile[kind==='frame'?'ownedFrames':'ownedTitles'].includes(item.id));}
+export function activeFrame(s){return s.profile?.frame||(ruleMet(s,'starter')?'mint':'standard');}
+export function selectCosmetic(s,kind,id){const item=catalog(s,kind).find(x=>x.id===id);if(!item||!isOwned(s,kind,item))return {ok:false,reason:'requirements'};s.profile[kind]=id;return {ok:true};}
+export function buyCosmetic(s,kind,id){const item=catalog(s,kind).find(x=>x.id===id);if(!item||!item.price)return {ok:false,reason:'requirements'};if(isOwned(s,kind,item))return {ok:false,reason:'cosmeticOwned'};if(!Number.isFinite(s.gems)||s.gems<item.price)return {ok:false,reason:'profileGems'};s.gems-=item.price;s.profile[kind==='frame'?'ownedFrames':'ownedTitles'].push(id);s.profile[kind]=id;return {ok:true};}
+export function sanitizeProfile(raw,s){const p=freshProfile();p.nickname=normalizeNickname(raw?.nickname);for(const [kind,key,list] of [['frame','ownedFrames',FRAMES],['title','ownedTitles',TITLES]]){const given=Array.isArray(raw?.[key])?raw[key]:[];p[key]=[...new Set([...p[key],...given.filter(id=>list.some(x=>x.id===id&&!x.rule))])];}
+ const state={...s,profile:p};const f=catalog(state,'frame').find(x=>x.id===raw?.frame);p.frame=isOwned(state,'frame',f)?f.id:null;const title=TITLES.find(x=>x.id===raw?.title);p.title=isOwned(state,'title',title)?title.id:'newbie';return p;}
