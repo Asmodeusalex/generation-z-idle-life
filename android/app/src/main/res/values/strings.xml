@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">Поколение Z</string>
+    <string name="title_activity_main">Поколение Z</string>
+    <string name="package_name">com.generationz.idlelife</string>
+    <string name="custom_url_scheme">com.generationz.idlelife</string>
+</resources>
