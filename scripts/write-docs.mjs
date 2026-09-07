@@ -1,0 +1,15 @@
+import fs from 'node:fs';import {execFileSync} from 'node:child_process';import {JOBS,ITEMS,LEVELS,HOUSING} from '../dist/data/config.js';import {t,setLanguage} from '../dist/locales/index.js';setLanguage('ru');
+const unlocks=['Работа, копилка','Магазин, курьер','Обучение, бариста','Продавец, события','Оператор','Официант','Фрилансер, велосипед','Junior Designer','Junior Developer','Съёмная комната, Content Creator','Монитор','Старший курьер, стильная одежда','Стример','Дизайнер, Gaming PC','Разработчик','Декор комнаты','Развитие навыков','Менеджер, студийное оборудование','Подготовка к студии','Студия, граница MVP'];
+let md='# Баланс 0.2.0\n\nТаблицы построены из рабочего конфига. Цены в условных игровых гривнах.\n\n## Первые 20 уровней\n\n| Уровень | XP до следующего | Открытие | Награда за достижение |\n|---|---:|---|---|\n';
+for(const l of LEVELS.slice(0,20))md+=`| ${l.level} | ${l.level===20?'—':l.xpNeeded} | ${unlocks[l.level-1]} | ${l.level===1?'Старт: 10 кристаллов':'+2 кристалла'} |\n`;
+md+='\n## Профессии\n\nПовторный выбор открытой профессии бесплатный. Требования — постоянные условия первого открытия.\n\n| Профессия | Уровень | ₴/сек | Цена входа | Навыки и предметы | Предыдущая работа |\n|---|---:|---:|---:|---|---|\n';
+for(const j of JOBS)md+=`| ${t(j.name)} | ${j.levelRequirement} | ${j.incomePerSecond} | ${j.unlockCost} | ${[...Object.entries(j.skillRequirements).map(([k,v])=>t('skill.'+k)+' '+v),...j.itemRequirements.map(i=>t('item.'+i))].join(', ')||'—'} | ${j.previousJob?t('job.'+j.previousJob):'—'} |\n`;
+md+='\n## Предметы\n\nВ одном слоте действует один предмет. Купленная вещь сразу экипируется.\n\n| Предмет | Цена | Уровень | Слот | Бонус дохода |\n|---|---:|---:|---|---:|\n';
+for(const i of ITEMS)md+=`| ${t(i.name)} | ${i.price||'Стартовый'} | ${i.levelRequirement} | ${i.slot} | +${Math.round(i.bonus*100)}% |\n`;
+md+='\n## Жильё\n\n| Жильё | Цена | Уровень | Доход |\n|---|---:|---:|---:|\n';for(const h of HOUSING)md+=`| ${t(h.name)} | ${h.price} | ${h.levelRequirement} | +${Math.round(h.bonus*100)}% |\n`;
+const checkpoints=JSON.parse(execFileSync(process.execPath,['tests/progression.mjs'],{encoding:'utf8'}));
+md+='\n## Прогон первых двух часов\n\nЭто детерминированный активный бот: подработка каждые 3 секунды, сбор каждые 15 секунд, покупка доступных улучшений, изучение самого слабого навыка каждые 20 секунд, получение доступных наград. Случайные события не используются. Это оптимистичный темп, не измерение реального игрока.\n\n| Минута | Уровень | Профессия | Доход/сек | Предметы | Жильё |\n|---|---:|---|---:|---:|---|\n';
+for(const p of checkpoints)md+=`| ${p.minutes} | ${p.level} | ${t('job.'+p.job)} | ${p.income} | ${p.items}/20 | ${t('home.'+p.housing)} |\n`;
+md+='\nДля первого дня MVP предлагает три жилья и коллекцию. Уровень 20 — осознанная граница текущего контента. Для удержания на недели нужны следующие игровые системы, а не искусственное увеличение ожидания.\n';
+fs.writeFileSync('docs/BALANCE.md',md);
+console.log('Wrote balance tables and measured progression.');
