@@ -1,0 +1,2 @@
+/* The native container supplies system-bar/cutout/keyboard insets. */
+html,body{max-width:100%;overflow-x:hidden;overscroll-behavior-x:none}body{min-width:0}
